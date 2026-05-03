@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МедUA — Медичне обладнання | Продаж, імпорт, сервіс</title>
+<meta name="description" content="Продаж, імпорт та сервісне обслуговування медичного обладнання для лікарень, клінік та стоматологій по всій Україні.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Three.js r128 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- GSAP -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#34BDC2;--teal2:#43B9BE;--tealDark:#1a8f93;
+  --white:#ffffff;--dark:#0b0e12;--dark2:#111519;--dark3:#161b21;
+  --grey:#f3f4f6;--text:#1e2428;--muted:#7a8a96;
+  --ff:'Quicksand',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--ff);font-weight:400;color:var(--text);background:var(--dark);overflow-x:hidden;cursor:none}
+
+/* ── CURSOR ── */
+#cursor{position:fixed;pointer-events:none;z-index:200;mix-blend-mode:difference}
+#cursor-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);transform:translate(-50%,-50%);transition:width .15s,height .15s}
+#cursor-ring{width:36px;height:36px;border-radius:50%;border:1px solid rgba(52,189,194,.45);transform:translate(-50%,-50%);transition:width .3s,height .3s,opacity .3s;margin-top:-22px;margin-left:-14px}
+body:not(:hover) #cursor{opacity:0}
+.cursor-grow #cursor-dot{width:18px;height:18px}
+.cursor-grow #cursor-ring{width:56px;height:56px;opacity:.6}
+
+/* ── NOISE ── */
+.noise_bk{position:fixed;inset:0;z-index:9990;pointer-events:none;opacity:.4;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E")}
+
+/* ── SPLASH ── */
+.splash{position:fixed;inset:0;z-index:8000;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.splash-logo{margin-bottom:56px}
+.splash-layer{overflow:hidden;height:0}
+.splash-layer h2{font-size:clamp(2.5rem,7vw,5.5rem);font-weight:700;color:var(--white);letter-spacing:-.02em;transform:translateY(110%)}
+.splash-layer h2 span{color:var(--teal)}
+
+/* ── HEADER ── */
+header{position:fixed;top:0;left:0;right:0;z-index:1000;transition:background .5s,border-color .5s;border-bottom:1px solid transparent}
+header.scrolled{background:rgba(11,14,18,.92);backdrop-filter:blur(20px);border-bottom-color:rgba(255,255,255,.06)}
+.grid_header{display:flex;align-items:center;justify-content:space-between;padding:0 52px;height:72px}
+.logo-text{font-size:1.15rem;font-weight:700;color:var(--white);text-decoration:none;letter-spacing:.02em}
+.logo-text em{font-style:normal;color:var(--teal)}
+.nav-links{display:flex;gap:36px;list-style:none}
+.nav-links a{font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5);text-decoration:none;transition:color .3s}
+.nav-links a:hover{color:var(--teal)}
+.side_c{display:flex;align-items:center;gap:14px}
+.lang-btns{display:flex;gap:6px}
+.lb{font-family:var(--ff);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border:1px solid rgba(255,255,255,.18);border-radius:3px;background:transparent;color:rgba(255,255,255,.4);cursor:none;transition:all .3s}
+.lb.active,.lb:hover{border-color:var(--teal)!important;color:var(--teal)!important}
+.cta-btn{font-family:var(--ff);font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dark);background:var(--teal);padding:10px 24px;border-radius:2px;text-decoration:none;transition:background .3s,transform .2s}
+.cta-btn:hover{background:var(--teal2);transform:translateY(-1px)}
+
+/* ── HERO ── */
+.hero{position:relative;height:100vh;min-height:640px;overflow:hidden;background:var(--dark)}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(11,14,18,.1) 0%,rgba(11,14,18,.65) 100%);pointer-events:none}
+.hero-content{position:absolute;bottom:0;left:0;right:0;z-index:2;padding:0 52px 90px}
+.hero-pill{display:inline-flex;align-items:center;gap:10px;font-size:.72rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);padding:7px 18px;border:1px solid rgba(52,189,194,.28);border-radius:100px;background:rgba(52,189,194,.06);margin-bottom:28px;opacity:0;transform:translateY(20px)}
+.hero-pill-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.6)}}
+.hero h1{font-size:clamp(3rem,6.5vw,6rem);font-weight:700;line-height:1.06;letter-spacing:-.025em;color:var(--white);margin-bottom:22px;opacity:0;transform:translateY(40px)}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero-sub{font-size:clamp(1rem,1.8vw,1.25rem);font-weight:400;color:rgba(255,255,255,.55);max-width:560px;line-height:1.65;margin-bottom:40px;opacity:0;transform:translateY(20px)}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;opacity:0;transform:translateY(20px)}
+.btn-p{font-family:var(--ff);font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:14px 34px;background:var(--teal);color:var(--dark);border:none;border-radius:2px;cursor:none;text-decoration:none;transition:all .3s;display:inline-block}
+.btn-p:hover{background:var(--teal2);transform:translateY(-2px);box-shadow:0 10px 30px rgba(52,189,194,.3)}
+.btn-g{font-family:var(--ff);font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:14px 34px;background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.25);border-radius:2px;cursor:none;text-decoration:none;transition:all .3s;display:inline-block}
+.btn-g:hover{border-color:var(--teal);color:var(--teal)}
+
+/* hero stats */
+.hero-stats{position:absolute;right:52px;bottom:90px;z-index:2;display:flex;flex-direction:column;gap:22px;opacity:0;transform:translateY(20px)}
+.hstat{text-align:right}
+.hstat-n{font-size:2.2rem;font-weight:700;color:var(--white);line-height:1}
+.hstat-n sup{font-size:.52em;color:var(--teal);vertical-align:super}
+.hstat-l{font-size:.68rem;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.hstat-sep{width:28px;height:1px;background:rgba(255,255,255,.1);margin-left:auto;margin-top:14px}
+
+/* scroll circle */
+.circle-scroll{position:absolute;right:52px;bottom:80px;z-index:2;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:0}
+.circle-svg{position:absolute;inset:0;animation:spin 12s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cerchio-pieno{fill:rgba(52,189,194,.08)}
+.arco{fill:none;stroke:var(--teal);stroke-width:1.5;stroke-dasharray:4 8}
+.scroll-lbl{font-size:.58rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--white);text-align:center;line-height:1.5;text-decoration:none}
+.scroll-lbl strong{color:var(--teal);display:block}
+
+/* ── SVG LINE ── */
+.tracciato-wrapper{display:flex;justify-content:center}
+.reveal-path{stroke-dasharray:300;stroke-dashoffset:300}
+
+/* ── CONTAINERS ── */
+.mod_container{max-width:1200px;margin:0 auto;padding:0 52px}
+
+/* ── INTRO TEXT ── */
+.info_solutions{padding:100px 0;text-align:center;background:var(--white)}
+.big-statement{font-size:clamp(1.5rem,2.8vw,2.2rem);font-weight:500;line-height:1.5;color:var(--text);max-width:720px;margin:0 auto}
+.body-text{font-size:clamp(.95rem,1.4vw,1.1rem);color:var(--muted);line-height:1.75;max-width:640px;margin:0 auto}
+.body-text strong{color:var(--text);font-weight:600}
+
+/* marquee */
+.mq-wrap{overflow:hidden;margin:56px 0}
+.mq-track{display:flex;white-space:nowrap;animation:mq 18s linear infinite}
+.mq-track-r{animation-direction:reverse}
+.mq-item{font-size:clamp(3rem,8vw,7rem);font-weight:700;letter-spacing:-.03em;color:var(--text);padding-right:80px;opacity:.07;white-space:nowrap;-webkit-text-stroke:1px rgba(0,0,0,.3)}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ── 3D COUNTER SECTION ── */
+.counter-section{position:relative;height:60vh;overflow:hidden;background:var(--dark2)}
+#counter-canvas{position:absolute;inset:0;width:100%;height:100%}
+.counter-content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none}
+.counter-num{font-size:clamp(6rem,14vw,12rem);font-weight:700;color:var(--teal);line-height:1;letter-spacing:-.04em;text-shadow:0 0 80px rgba(52,189,194,.4)}
+.counter-lbl{font-size:.82rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:10px}
+
+/* ── 3D PRODUCT CARDS ── */
+.products-section{background:var(--dark);padding:80px 0 100px}
+.products-intro{text-align:center;padding:0 52px;margin-bottom:72px}
+.products-intro p{font-size:1.05rem;color:rgba(255,255,255,.5);line-height:1.75;max-width:640px;margin:0 auto}
+.products-intro strong{color:var(--white);font-weight:600}
+.section-overline{font-size:.7rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:12px}
+.section-title{font-size:clamp(2rem,3.5vw,3rem);font-weight:700;letter-spacing:-.02em;line-height:1.1}
+
+/* 3D card grid */
+.cards-3d-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;padding:0 52px}
+.card-3d-wrap{perspective:1000px}
+.card-3d{
+  position:relative;border-radius:4px;overflow:hidden;
+  background:var(--dark3);border:1px solid rgba(255,255,255,.06);
+  transform-style:preserve-3d;
+  transition:box-shadow .4s;
+  cursor:none;
+  min-height:420px;
+}
+.card-3d:hover{box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 40px rgba(52,189,194,.08)}
+
+/* card layers for 3D depth */
+.card-bg-layer{position:absolute;inset:0;transition:transform .1s linear}
+.card-content-layer{position:absolute;inset:0;padding:44px;display:flex;flex-direction:column;justify-content:flex-end;transform:translateZ(30px);transition:transform .1s linear}
+.card-img-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:translateZ(20px);transition:transform .1s linear}
+
+/* card gradients per category */
+.card-3d.azur .card-bg-layer{background:linear-gradient(135deg,#071826 0%,#0d2e44 60%,#071826 100%)}
+.card-3d.teal-c .card-bg-layer{background:linear-gradient(135deg,#061c1c 0%,#0b3030 60%,#061c1c 100%)}
+.card-3d.violet .card-bg-layer{background:linear-gradient(135deg,#120a1e 0%,#231040 60%,#120a1e 100%)}
+.card-3d.slate .card-bg-layer{background:linear-gradient(135deg,#0d0d10 0%,#1a1a22 60%,#0d0d10 100%)}
+
+/* shimmer on hover */
+.card-3d::before{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(52,189,194,.06) 50%,transparent 60%);opacity:0;transition:opacity .4s;z-index:3;pointer-events:none}
+.card-3d:hover::before{opacity:1}
+
+/* top accent line */
+.card-3d::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--tealDark),var(--teal));transform:scaleX(0);transform-origin:left;transition:transform .5s ease;z-index:4}
+.card-3d:hover::after{transform:scaleX(1)}
+
+.card-num{font-size:5rem;font-weight:700;color:rgba(255,255,255,.04);line-height:1;letter-spacing:-.04em;position:absolute;top:20px;left:28px;pointer-events:none;user-select:none}
+.card-cat{font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+.card-title{font-size:1.6rem;font-weight:700;color:var(--white);line-height:1.15;margin-bottom:14px;letter-spacing:-.015em}
+.card-desc{font-size:.85rem;color:rgba(255,255,255,.45);line-height:1.7;max-width:340px}
+.card-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+.card-tag{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border:1px solid rgba(52,189,194,.22);border-radius:2px;color:var(--teal)}
+.card-link{display:inline-flex;align-items:center;gap:9px;margin-top:24px;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);text-decoration:none;transition:gap .3s}
+.card-link:hover{gap:16px}
+.card-link svg{width:18px}
+
+/* 3D floating SVG icon */
+.card-icon-3d{width:160px;height:160px;filter:drop-shadow(0 0 30px rgba(52,189,194,.18));opacity:.18;transition:opacity .4s,transform .4s}
+.card-3d:hover .card-icon-3d{opacity:.32;transform:scale(1.05)}
+.card-icon-3d svg{width:100%;height:100%;color:var(--teal)}
+
+/* placeholder label */
+.ph-note{position:absolute;top:18px;right:18px;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.12);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);padding:4px 10px;border-radius:2px;z-index:5}
+
+/* ── SERVICES MASK ── */
+.services-section{background:var(--white)}
+.section-intro{padding:80px 52px 40px;text-align:center}
+.heading_mask{position:relative;overflow:hidden;border-top:1px solid rgba(0,0,0,.06)}
+.heading_mask_el{padding:72px 0}
+.mask-deep{background:var(--white)}
+.mask-dark{position:absolute;inset:0;background:var(--dark);clip-path:inset(0 100% 0 0);transition:clip-path .9s cubic-bezier(.77,0,.18,1)}
+.mask-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.mask-title-light{font-size:clamp(2.5rem,5vw,4rem);font-weight:700;letter-spacing:-.02em;color:var(--text);line-height:1.1}
+.mask-title-dark{font-size:clamp(2.5rem,5vw,4rem);font-weight:700;letter-spacing:-.02em;color:var(--white);line-height:1.1}
+.mask-body-light{font-size:1rem;color:var(--muted);line-height:1.75}
+.mask-body-dark{font-size:1rem;color:rgba(255,255,255,.45);line-height:1.75}
+
+/* ── PARTNERS ── */
+.partners-section{padding:64px 0;border-top:1px solid rgba(0,0,0,.06);background:var(--white);overflow:hidden}
+.partners-label{text-align:center;font-size:.7rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:44px}
+.partners-track{display:flex;animation:ptmq 22s linear infinite}
+.partner-logo{font-size:1.1rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(0,0,0,.1);padding:0 52px;white-space:nowrap;transition:color .4s;cursor:default}
+.partner-logo:hover{color:var(--teal)}
+@keyframes ptmq{to{transform:translateX(-50%)}}
+
+/* ── KPI ── */
+.kpi-section{padding:80px 0;background:#f8f9fa}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;}
+.kpi-box{background:var(--white);padding:36px 28px;border:1px solid rgba(0,0,0,.05);transition:border-color .3s,transform .3s;cursor:default;min-height:130px}
+.kpi-box:hover{border-color:rgba(52,189,194,.35);transform:translateY(-3px)}
+.kpi-n{font-size:3rem;font-weight:700;color:var(--teal);line-height:1}
+.kpi-n sup{font-size:.5em;vertical-align:super}
+.kpi-l{font-size:.82rem;color:var(--muted);margin-top:10px;line-height:1.4;font-weight:500}
+
+/* ── CONTACT MARQUEE ── */
+.contact-marquee{padding:100px 0;background:var(--dark);overflow:hidden}
+.contact-marquee .mq-item{color:var(--white);opacity:.04;-webkit-text-stroke:1px rgba(255,255,255,.15)}
+.cta-center{margin-top:60px;text-align:center}
+.cta-center p{font-size:clamp(1.2rem,2.5vw,1.8rem);font-weight:500;color:rgba(255,255,255,.5);margin-bottom:32px}
+.link a{font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal);padding-bottom:3px;transition:opacity .3s}
+.link a:hover{opacity:.65}
+
+/* ── CONTACT FORM ── */
+.contact-section{padding:100px 0;background:var(--white)}
+.contact-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:80px;align-items:start}
+.contact-overline{font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:12px}
+.contact-h2{font-size:clamp(1.8rem,2.5vw,2.4rem);font-weight:700;letter-spacing:-.02em;color:var(--text);margin-bottom:12px}
+.contact-sub{font-size:.95rem;color:var(--muted);line-height:1.7;margin-bottom:40px}
+.contact-items{display:flex;flex-direction:column;gap:22px}
+.contact-item{display:flex;gap:16px;align-items:flex-start}
+.ci-ico{width:44px;height:44px;min-width:44px;border:1px solid rgba(52,189,194,.25);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--teal);background:rgba(52,189,194,.05)}
+.ci-ico svg{width:18px}
+.ci-lb{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ci-val{font-size:.93rem;color:var(--text);font-weight:500}
+.contact-form{background:#f3f4f6;padding:48px 40px}
+.fr{margin-bottom:16px}
+.fr label{display:block;font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.fr input,.fr select,.fr textarea{width:100%;background:var(--white);border:1px solid rgba(0,0,0,.1);padding:13px 16px;color:var(--text);font-family:var(--ff);font-size:.9rem;outline:none;transition:border-color .3s;-webkit-appearance:none;border-radius:0}
+.fr input:focus,.fr select:focus,.fr textarea:focus{border-color:var(--teal)}
+.fr textarea{resize:vertical;min-height:110px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-send{width:100%;font-family:var(--ff);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:16px;background:var(--teal);color:var(--white);border:none;cursor:none;transition:background .3s}
+.btn-send:hover{background:var(--teal2)}
+
+/* ── FOOTER ── */
+footer{background:var(--dark);padding:60px 52px 36px}
+.grid_footer{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.item_footer h4{font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:20px}
+.item_footer ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.item_footer ul a{font-size:.82rem;color:rgba(255,255,255,.28);text-decoration:none;transition:color .3s}
+.item_footer ul a:hover{color:var(--white)}
+.ft-name{font-size:1.15rem;font-weight:700;color:var(--white);margin-bottom:10px;display:block}
+.ft-name em{font-style:normal;color:var(--teal)}
+.ft-tagline{font-size:.82rem;color:rgba(255,255,255,.22);line-height:1.6;max-width:220px;margin-bottom:12px}
+.ft-copy{font-size:.75rem;color:rgba(255,255,255,.15)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.05);padding-top:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer-bottom span,.footer-bottom a{font-size:.75rem;color:rgba(255,255,255,.18);text-decoration:none;transition:color .3s}
+.footer-bottom a:hover{color:var(--teal)}
+
+
+/* WHY LIST */
+.why-list { display:flex; flex-direction:column; gap:0; }
+.why-item { display:flex; gap:20px; padding:24px 0; border-bottom:1px solid rgba(0,0,0,.07); }
+.why-num  { font-size:.78rem; font-weight:700; letter-spacing:.1em; color:var(--teal); min-width:28px; padding-top:2px; }
+.why-title{ font-size:1rem; font-weight:700; color:var(--text); margin-bottom:6px; }
+.why-desc { font-size:.85rem; color:var(--muted); line-height:1.65; }
+@media(max-width:900px){ .kpi-why-wrap{ grid-template-columns:1fr !important; } }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .grid_header{padding:0 20px}
+  .nav-links{display:none}
+  .hero-content{padding:0 24px 80px}
+  .hero-stats,.circle-scroll{display:none}
+  .mod_container{padding:0 24px}
+  .cards-3d-grid{grid-template-columns:1fr;padding:0 24px}
+  .mask-grid{grid-template-columns:1fr;gap:32px}
+  .contact-grid{grid-template-columns:1fr;gap:48px}
+  .grid_footer{grid-template-columns:1fr 1fr;gap:32px}
+  footer{padding:40px 24px 24px}
+  .section-intro{padding:60px 24px 32px}
+  .fr2{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor">
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+</div>
+<div class="noise_bk"></div>
+
+<!-- ══ SPLASH ══ -->
+<div class="splash" id="splash">
+  <div class="splash-logo">
+    <!-- [ЗАМІНИТИ] SVG-логотип компанії -->
+    <svg viewBox="0 0 60 60" fill="none" width="52">
+      <rect x="26" y="0" width="8" height="60" fill="white"/>
+      <path d="M26 0L26 38L14 50L2 60L2 52L14 42L14 0Z" fill="#43B9BE"/>
+      <path d="M34 60L34 22L46 10L58 0L58 8L46 18L46 60Z" fill="#43B9BE"/>
+    </svg>
+  </div>
+  <!-- [ЗАМІНИТИ] Три слова-цінності компанії -->
+  <div class="splash-layer" id="sl1"><h2><span>Якість.</span></h2></div>
+  <div class="splash-layer" id="sl2"><h2><span>Надійність.</span></h2></div>
+  <div class="splash-layer" id="sl3"><h2><span>Турбота.</span></h2></div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header id="header">
+  <div class="grid_header">
+    <!-- [ЗАМІНИТИ] Назва компанії -->
+    <a href="#" class="logo-text">Med<em>UA</em></a>
+    <ul class="nav-links">
+      <li><a href="#products" data-i18n="n.eq">Обладнання</a></li>
+      <li><a href="#services" data-i18n="n.sv">Послуги</a></li>
+      <li><a href="#about"    data-i18n="n.ab">Про нас</a></li>
+      <li><a href="#contact"  data-i18n="n.ct">Контакти</a></li>
+    </ul>
+    <div class="side_c">
+      <div class="lang-btns">
+        <button class="lb active" onclick="setLang('uk')">UA</button>
+        <button class="lb" onclick="setLang('ru')">RU</button>
+        <button class="lb" onclick="setLang('en')">EN</button>
+      </div>
+      <a href="#contact" class="cta-btn" data-i18n="n.cta">Замовити</a>
+    </div>
+  </div>
+</header>
+
+<!-- ══ HERO — Three.js interactive 3D background ══ -->
+<section class="hero" id="top">
+  <!-- Three.js renders here -->
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+    <div class="hero-pill" id="hpill">
+      <span class="hero-pill-dot"></span>
+      <span data-i18n="h.pill">Медичне обладнання</span>
+    </div>
+    <!-- [ЗАМІНИТИ] Головний заголовок -->
+    <h1 id="hh1" data-i18n="h.h1">Медичне обладнання<br>для сучасної <em>України</em></h1>
+    <!-- [ЗАМІНИТИ] Підзаголовок -->
+    <p class="hero-sub" id="hsub" data-i18n="h.sub">Продаж, імпорт та сервісне обслуговування для лікарень, клінік та стоматологій по всій країні</p>
+    <div class="hero-btns" id="hbtns">
+      <a href="#products" class="btn-p" data-i18n="h.b1">Переглянути каталог</a>
+      <a href="#contact"  class="btn-g" data-i18n="h.b2">Зв'язатись</a>
+    </div>
+  </div>
+
+  <!-- [ЗАМІНИТИ] Реальні цифри компанії -->
+  <div class="hero-stats" id="hstats">
+    <div class="hstat"><div class="hstat-n">500<sup>+</sup></div><div class="hstat-l" data-i18n="hs.c">Клієнтів</div></div>
+    <div class="hstat-sep"></div>
+    <div class="hstat"><div class="hstat-n">10<sup>+</sup></div><div class="hstat-l"  data-i18n="hs.y">Років досвіду</div></div>
+    <div class="hstat-sep"></div>
+    <div class="hstat"><div class="hstat-n">24/7</div><div class="hstat-l"  data-i18n="hs.s">Підтримка</div></div>
+  </div>
+
+  <div class="circle-scroll" id="hcirc">
+    <svg class="circle-svg" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="72" class="cerchio-pieno"/>
+      <circle cx="100" cy="100" r="85" class="arco"/>
+    </svg>
+    <a class="scroll-lbl" href="#products">
+      <span data-i18n="h.disc">КАТАЛОГ</span>
+      <strong>MED<em style="font-style:normal">UA</em></strong>
+    </a>
+  </div>
+</section>
+
+<!-- ══ INTRO ══ -->
+<section class="info_solutions" id="about">
+  <div class="tracciato-wrapper">
+    <svg width="2" height="110" viewBox="0 0 2 110" fill="none">
+      <path class="reveal-path" d="M1 0V110" stroke="#34BDC2" stroke-width="2"/>
+    </svg>
+  </div>
+  <div class="mod_container" style="margin-top:56px">
+    <!-- [ЗАМІНИТИ] Ключова фраза про компанію -->
+    <p class="big-statement paragrafo_anim" data-i18n="intro.p1">Ми постачаємо надійне медичне обладнання<br>для ефективної діагностики та лікування.</p>
+  </div>
+  <div class="mq-wrap">
+    <div class="mq-track">
+      <!-- [ЗАМІНИТИ] Текст бігучого рядка -->
+      <div class="mq-item" data-i18n="mq1">Інновації в медицині&nbsp;&nbsp;&nbsp;</div>
+      <div class="mq-item" data-i18n="mq1">Інновації в медицині&nbsp;&nbsp;&nbsp;</div>
+      <div class="mq-item" data-i18n="mq1">Інновації в медицині&nbsp;&nbsp;&nbsp;</div>
+      <div class="mq-item" data-i18n="mq1">Інновації в медицині&nbsp;&nbsp;&nbsp;</div>
+    </div>
+  </div>
+  <div class="mod_container" style="margin-bottom:56px">
+    <!-- [ЗАМІНИТИ] Короткий опис компанії -->
+    <p class="body-text paragrafo_anim" data-i18n="intro.p2">МедUA постачає <strong>передові медичні системи</strong> для державних лікарень, приватних клінік та стоматологічних центрів по всій Україні та за кордоном.</p>
+  </div>
+  <div class="tracciato-wrapper">
+    <svg width="2" height="110" viewBox="0 0 2 110" fill="none">
+      <path class="reveal-path" d="M1 0V110" stroke="#34BDC2" stroke-width="2"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ 3D COUNTER — Three.js particles ══ -->
+<section class="counter-section">
+  <canvas id="counter-canvas"></canvas>
+  <div class="counter-content">
+    <!-- [ЗАМІНИТИ] Реальна цифра та підпис -->
+    <div class="counter-num" id="cnum">0</div>
+    <div class="counter-lbl" data-i18n="cnt.lbl">Медичних закладів обслуговується</div>
+  </div>
+</section>
+
+<!-- ══ 3D PRODUCT CARDS ══ -->
+<section class="products-section" id="products">
+  <div class="products-intro mod_container">
+    <div class="section-overline" data-i18n="pr.ov">Каталог обладнання</div>
+    <h2 class="section-title" style="color:var(--white);margin-bottom:20px" data-i18n="pr.title">Медичне обладнання</h2>
+    <!-- [ЗАМІНИТИ] Вступний текст секції продуктів -->
+    <p data-i18n="pr.sub">Широкий асортимент для різних клінічних потреб — <strong>від діагностики до хірургії.</strong></p>
+  </div>
+
+  <div class="cards-3d-grid">
+
+    <!-- CARD 01 — Рентгенологія -->
+    <!-- [ЗАМІНИТИ] Назва, опис, теги, та SVG-іконку можна замінити реальним фото -->
+    <div class="card-3d-wrap">
+      <div class="card-3d azur" data-tilt>
+        <span class="ph-note">ФОТО ПРОДУКТУ</span>
+        <div class="card-bg-layer"></div>
+        <div class="card-num">01</div>
+        <div class="card-img-layer">
+          <!-- Mammography / Digital X-Ray machine -->
+          <div class="card-icon-3d">
+            <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- base / floor stand -->
+              <rect x="82" y="195" width="36" height="10" rx="3" fill="rgba(52,189,194,.25)" stroke="rgba(52,189,194,.6)" stroke-width="1"/>
+              <rect x="90" y="170" width="20" height="28" rx="2" fill="rgba(52,189,194,.12)" stroke="rgba(52,189,194,.45)" stroke-width="1"/>
+              <!-- vertical column -->
+              <rect x="95" y="55" width="10" height="118" rx="3" fill="rgba(52,189,194,.18)" stroke="rgba(52,189,194,.55)" stroke-width="1"/>
+              <!-- horizontal arm -->
+              <rect x="60" y="50" width="80" height="10" rx="3" fill="rgba(52,189,194,.2)" stroke="rgba(52,189,194,.6)" stroke-width="1"/>
+              <!-- detector panel -->
+              <rect x="42" y="12" width="56" height="42" rx="4" fill="rgba(52,189,194,.1)" stroke="rgba(52,189,194,.7)" stroke-width="1.2"/>
+              <rect x="48" y="18" width="44" height="30" rx="2" fill="rgba(52,189,194,.06)" stroke="rgba(52,189,194,.3)" stroke-width=".7"/>
+              <!-- X-ray source head -->
+              <rect x="118" y="42" width="32" height="24" rx="4" fill="rgba(52,189,194,.15)" stroke="rgba(52,189,194,.65)" stroke-width="1.2"/>
+              <circle cx="134" cy="54" r="6" fill="rgba(52,189,194,.25)" stroke="rgba(52,189,194,.7)" stroke-width="1"/>
+              <circle cx="134" cy="54" r="3" fill="rgba(52,189,194,.5)"/>
+              <!-- radiation beam lines -->
+              <line x1="118" y1="48" x2="98" y2="38" stroke="rgba(52,189,194,.2)" stroke-width=".8" stroke-dasharray="3 3"/>
+              <line x1="118" y1="54" x2="98" y2="54" stroke="rgba(52,189,194,.2)" stroke-width=".8" stroke-dasharray="3 3"/>
+              <line x1="118" y1="60" x2="98" y2="70" stroke="rgba(52,189,194,.2)" stroke-width=".8" stroke-dasharray="3 3"/>
+              <!-- control panel label -->
+              <rect x="76" y="138" width="48" height="22" rx="3" fill="rgba(52,189,194,.08)" stroke="rgba(52,189,194,.3)" stroke-width=".8"/>
+              <circle cx="86" cy="149" r="3" fill="rgba(52,189,194,.4)"/>
+              <rect x="93" y="144" width="22" height="4" rx="1" fill="rgba(52,189,194,.25)"/>
+              <rect x="93" y="151" width="14" height="3" rx="1" fill="rgba(52,189,194,.15)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content-layer">
+          <div class="card-cat" data-i18n="p1.cat">Рентгенологія</div>
+          <div class="card-title" data-i18n="p1.t">Рентгенологічне обладнання</div>
+          <div class="card-desc" data-i18n="p1.d">Цифрові рентген-апарати, флюорографи, мамографи від провідних виробників. Сертифікація МОЗ України.</div>
+          <div class="card-tags">
+            <span class="card-tag">Цифровий рентген</span>
+            <span class="card-tag">Флюорограф</span>
+            <span class="card-tag">Мамограф</span>
+          </div>
+          <a href="#contact" class="card-link">
+            <span data-i18n="p.lnk">Запросити прайс</span>
+            <svg viewBox="0 0 24 20" fill="none"><path d="M10 0v20.5M3 13.5l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 02 — УЗД -->
+    <div class="card-3d-wrap">
+      <div class="card-3d teal-c" data-tilt>
+        <span class="ph-note">ФОТО ПРОДУКТУ</span>
+        <div class="card-bg-layer"></div>
+        <div class="card-num">02</div>
+        <div class="card-img-layer">
+          <!-- Ultrasound machine -->
+          <div class="card-icon-3d">
+            <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- main body / cart -->
+              <rect x="50" y="90" width="100" height="110" rx="6" fill="rgba(52,189,194,.1)" stroke="rgba(52,189,194,.5)" stroke-width="1.2"/>
+              <!-- screen -->
+              <rect x="60" y="100" width="80" height="54" rx="3" fill="rgba(52,189,194,.08)" stroke="rgba(52,189,194,.6)" stroke-width="1"/>
+              <!-- screen content — wave -->
+              <polyline points="64,127 72,115 80,132 88,120 96,128 104,116 112,124 120,113 128,127 136,119" stroke="rgba(52,189,194,.7)" stroke-width="1.2" fill="none"/>
+              <line x1="64" y1="134" x2="136" y2="134" stroke="rgba(52,189,194,.15)" stroke-width=".6"/>
+              <!-- keyboard area -->
+              <rect x="60" y="160" width="80" height="30" rx="2" fill="rgba(52,189,194,.06)" stroke="rgba(52,189,194,.25)" stroke-width=".8"/>
+              <rect x="64" y="164" width="34" height="6" rx="1" fill="rgba(52,189,194,.2)"/>
+              <rect x="64" y="173" width="22" height="4" rx="1" fill="rgba(52,189,194,.15)"/>
+              <circle cx="112" cy="170" r="8" fill="rgba(52,189,194,.12)" stroke="rgba(52,189,194,.4)" stroke-width=".8"/>
+              <circle cx="112" cy="170" r="4" fill="rgba(52,189,194,.3)"/>
+              <!-- probe cable -->
+              <path d="M58 140 Q30 140 28 160 Q26 180 40 185 L44 205" stroke="rgba(52,189,194,.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              <!-- probe head -->
+              <rect x="36" y="204" width="16" height="10" rx="4" fill="rgba(52,189,194,.3)" stroke="rgba(52,189,194,.65)" stroke-width="1"/>
+              <!-- wheels -->
+              <circle cx="64"  cy="202" r="5" fill="rgba(52,189,194,.15)" stroke="rgba(52,189,194,.4)" stroke-width=".8"/>
+              <circle cx="136" cy="202" r="5" fill="rgba(52,189,194,.15)" stroke="rgba(52,189,194,.4)" stroke-width=".8"/>
+              <!-- ultrasound arcs above probe -->
+              <path d="M50 168 Q44 160 50 152" stroke="rgba(52,189,194,.3)" stroke-width=".9" fill="none"/>
+              <path d="M46 170 Q37 160 46 150" stroke="rgba(52,189,194,.2)" stroke-width=".8" fill="none"/>
+              <path d="M42 172 Q30 160 42 148" stroke="rgba(52,189,194,.12)" stroke-width=".7" fill="none"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content-layer">
+          <div class="card-cat" data-i18n="p2.cat">УЗД Діагностика</div>
+          <div class="card-title" data-i18n="p2.t">Ультразвукова діагностика</div>
+          <div class="card-desc" data-i18n="p2.d">Стаціонарні та портативні апарати для кардіології, акушерства та загальної практики.</div>
+          <div class="card-tags">
+            <span class="card-tag">Стаціонарні</span>
+            <span class="card-tag">Портативні</span>
+            <span class="card-tag">Кардіологія</span>
+          </div>
+          <a href="#contact" class="card-link">
+            <span data-i18n="p.lnk">Запросити прайс</span>
+            <svg viewBox="0 0 24 20" fill="none"><path d="M10 0v20.5M3 13.5l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 03 — Стоматологія -->
+    <div class="card-3d-wrap">
+      <div class="card-3d violet" data-tilt>
+        <span class="ph-note">ФОТО ПРОДУКТУ</span>
+        <div class="card-bg-layer"></div>
+        <div class="card-num">03</div>
+        <div class="card-img-layer">
+          <div class="card-icon-3d">
+            <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width=".7">
+              <circle cx="60" cy="46" r="32"/>
+              <circle cx="60" cy="46" r="16"/>
+              <circle cx="60" cy="46" r="5"/>
+              <rect x="44" y="78" width="32" height="24" rx="4"/>
+              <line x1="60" y1="14" x2="60" y2="2"/>
+              <line x1="92" y1="46" x2="108" y2="46"/>
+              <line x1="28" y1="46" x2="12" y2="46"/>
+              <line x1="82.6" y1="23.4" x2="93" y2="13"/>
+              <line x1="37.4" y1="23.4" x2="27" y2="13"/>
+              <line x1="60" y1="102" x2="60" y2="115"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content-layer">
+          <div class="card-cat" data-i18n="p3.cat">Стоматологія</div>
+          <div class="card-title" data-i18n="p3.t">Стоматологічне обладнання</div>
+          <div class="card-desc" data-i18n="p3.d">Установки, КЛКТ-томографи, автоклави та витратні матеріали для клінік будь-якого рівня.</div>
+          <div class="card-tags">
+            <span class="card-tag">Установки</span>
+            <span class="card-tag">КЛКТ-томографи</span>
+            <span class="card-tag">Автоклави</span>
+          </div>
+          <a href="#contact" class="card-link">
+            <span data-i18n="p.lnk">Запросити прайс</span>
+            <svg viewBox="0 0 24 20" fill="none"><path d="M10 0v20.5M3 13.5l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 04 — Операційне -->
+    <div class="card-3d-wrap">
+      <div class="card-3d slate" data-tilt>
+        <span class="ph-note">ФОТО ПРОДУКТУ</span>
+        <div class="card-bg-layer"></div>
+        <div class="card-num">04</div>
+        <div class="card-img-layer">
+          <div class="card-icon-3d">
+            <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width=".7">
+              <rect x="28" y="18" width="64" height="72" rx="7"/>
+              <line x1="46" y1="18" x2="46" y2="90"/>
+              <line x1="28" y1="50" x2="92" y2="50"/>
+              <circle cx="70" cy="70" r="14"/>
+              <circle cx="70" cy="70" r="5"/>
+              <path d="M22 36 L10 36 L10 72 L22 72"/>
+              <line x1="28" y1="90" x2="92" y2="90"/>
+              <line x1="60" y1="90" x2="60" y2="108"/>
+              <line x1="44" y1="108" x2="76" y2="108"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content-layer">
+          <div class="card-cat" data-i18n="p4.cat">Операційне та лабораторне</div>
+          <div class="card-title" data-i18n="p4.t">Операційне та лабораторне</div>
+          <div class="card-desc" data-i18n="p4.d">Столи та лампи, наркозні апарати, електрохірургія, ендоскопія та лабораторне обладнання.</div>
+          <div class="card-tags">
+            <span class="card-tag">Операційні столи</span>
+            <span class="card-tag">Наркозні апарати</span>
+            <span class="card-tag">Ендоскопія</span>
+          </div>
+          <a href="#contact" class="card-link">
+            <span data-i18n="p.lnk">Запросити прайс</span>
+            <svg viewBox="0 0 24 20" fill="none"><path d="M10 0v20.5M3 13.5l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ SERVICES MASK ══ -->
+<section class="services-section" id="services">
+  <div class="section-intro">
+    <div class="section-overline" data-i18n="sv.ov">Наші послуги</div>
+    <h2 class="section-title" data-i18n="sv.title">Комплексні рішення під ключ</h2>
+  </div>
+
+  <div class="heading_mask">
+    <div class="heading_mask_el mask-deep">
+      <div class="mod_container"><div class="mask-grid">
+        <h2 class="mask-title-light" data-i18n="hm1.t">ПРОДАЖ<br>ОБЛАДНАННЯ</h2>
+        <!-- [ЗАМІНИТИ] Опис послуги -->
+        <p class="mask-body-light" data-i18n="hm1.d">Широкий асортимент від провідних виробників. Офіційна гарантія та документація МОЗ. Прямі контракти — оригінальне обладнання за прозорими цінами.</p>
+      </div></div>
+    </div>
+    <div class="heading_mask_el mask-dark">
+      <div class="mod_container"><div class="mask-grid">
+        <h2 class="mask-title-dark" data-i18n="hm1.t">ПРОДАЖ<br>ОБЛАДНАННЯ</h2>
+        <p class="mask-body-dark" data-i18n="hm1.d">Широкий асортимент від провідних виробників. Офіційна гарантія та документація МОЗ. Прямі контракти — оригінальне обладнання за прозорими цінами.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="heading_mask">
+    <div class="heading_mask_el mask-deep">
+      <div class="mod_container"><div class="mask-grid">
+        <h2 class="mask-title-light" data-i18n="hm2.t">ІМПОРТ<br>ТА СЕРВІС</h2>
+        <p class="mask-body-light" data-i18n="hm2.d">Прямі поставки з Європи, США та Азії. Митне оформлення під ключ. Атестовані інженери, виїзд по Україні за 48 годин.</p>
+      </div></div>
+    </div>
+    <div class="heading_mask_el mask-dark">
+      <div class="mod_container"><div class="mask-grid">
+        <h2 class="mask-title-dark" data-i18n="hm2.t">ІМПОРТ<br>ТА СЕРВІС</h2>
+        <p class="mask-body-dark" data-i18n="hm2.d">Прямі поставки з Європи, США та Азії. Митне оформлення під ключ. Атестовані інженери, виїзд по Україні за 48 годин.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="heading_mask">
+    <div class="heading_mask_el mask-deep">
+      <div class="mod_container"><div class="mask-grid">
+        <h2 class="mask-title-light" data-i18n="hm3.t">ГНУЧКІ<br>УМОВИ</h2>
+        <p class="mask-body-light" data-i18n="hm3.d">Лізинг, відтермінування платежу, держзакупівлі ProZorro. Індивідуальний підхід до кожного клієнта.</p>
+      </div></div>
+    </div>
+    <div class="heading_mask_el mask-dark">
+      <div class="mod_container"><div class="mask-grid">
+        <h2 class="mask-title-dark" data-i18n="hm3.t">ГНУЧКІ<br>УМОВИ</h2>
+        <p class="mask-body-dark" data-i18n="hm3.d">Лізинг, відтермінування платежу, держзакупівлі ProZorro. Індивідуальний підхід до кожного клієнта.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PARTNERS ══ -->
+<!-- [ЗАМІНИТИ] Замініть назви на реальні логотипи клієнтів -->
+<div class="partners-section">
+  <p class="partners-label" data-i18n="pt.lbl">Нам довіряють</p>
+  <div class="partners-track">
+    <span class="partner-logo">МОЗ України</span>
+    <span class="partner-logo">Охматдит</span>
+    <span class="partner-logo">Медмарк</span>
+    <span class="partner-logo">Добробут</span>
+    <span class="partner-logo">Ісіда</span>
+    <span class="partner-logo">Борис</span>
+    <span class="partner-logo">Лікарська мережа</span>
+    <span class="partner-logo">МОЗ України</span>
+    <span class="partner-logo">Охматдит</span>
+    <span class="partner-logo">Медмарк</span>
+    <span class="partner-logo">Добробут</span>
+    <span class="partner-logo">Ісіда</span>
+    <span class="partner-logo">Борис</span>
+    <span class="partner-logo">Лікарська мережа</span>
+  </div>
+</div>
+
+<!-- ══ KPI ══ -->
+<section class="kpi-section" id="about-kpi">
+  <div class="mod_container">
+    <div class="section-overline" data-i18n="kpi.ov">Чому обирають нас</div>
+    <h2 class="section-title" data-i18n="kpi.title">Надійний партнер,<br><span style="color:var(--teal)">крок за кроком.</span></h2>
+
+    <div class="kpi-why-wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:56px;align-items:start">
+
+      <!-- KPI цифри -->
+      <div class="kpi-grid">
+        <div class="kpi-box"><div class="kpi-n">500<sup>+</sup></div><div class="kpi-l" data-i18n="k1">Медичних закладів-партнерів</div></div>
+        <div class="kpi-box"><div class="kpi-n">10<sup>+</sup></div><div class="kpi-l"  data-i18n="k2">Років на ринку</div></div>
+        <div class="kpi-box"><div class="kpi-n">48год</div><div class="kpi-l" data-i18n="k3">Максимальний час реакції сервісу</div></div>
+        <div class="kpi-box"><div class="kpi-n">20<sup>+</sup></div><div class="kpi-l"  data-i18n="k4">Брендів-виробників у портфоліо</div></div>
+      </div>
+
+      <!-- Причини обрати нас -->
+      <div class="why-list" style="padding-top:4px">
+        <div class="why-item">
+          <div class="why-num">01</div>
+          <div>
+            <div class="why-title" data-i18n="w1.t">Офіційні дистриб'ютори</div>
+            <div class="why-desc"  data-i18n="w1.d">Прямі контракти з виробниками. Тільки оригінальне обладнання з повною документацією МОЗ та офіційною гарантією.</div>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">02</div>
+          <div>
+            <div class="why-title" data-i18n="w2.t">Атестовані інженери</div>
+            <div class="why-desc"  data-i18n="w2.d">Власна сервісна служба з сертифікованими фахівцями. Виїзд по всій Україні протягом 48 годин.</div>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">03</div>
+          <div>
+            <div class="why-title" data-i18n="w3.t">Гнучкі умови оплати</div>
+            <div class="why-desc"  data-i18n="w3.d">Лізинг, відтермінування, держзакупівлі ProZorro. Індивідуальний підхід до кожного клієнта.</div>
+          </div>
+        </div>
+        <div class="why-item" style="border-bottom:none">
+          <div class="why-num">04</div>
+          <div>
+            <div class="why-title" data-i18n="w4.t">Повний цикл</div>
+            <div class="why-desc"  data-i18n="w4.d">Від підбору та поставки до монтажу, навчання персоналу і постгарантійного обслуговування.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACT MARQUEE ══ -->
+<section class="contact-marquee">
+  <div class="mq-wrap">
+    <div class="mq-track mq-track-r">
+      <!-- [ЗАМІНИТИ] Текст бігучого рядка контактів -->
+      <div class="mq-item" data-i18n="cq1">Контакти&nbsp;•&nbsp;Залишити заявку&nbsp;•&nbsp;&nbsp;&nbsp;</div>
+      <div class="mq-item" data-i18n="cq1">Контакти&nbsp;•&nbsp;Залишити заявку&nbsp;•&nbsp;&nbsp;&nbsp;</div>
+      <div class="mq-item" data-i18n="cq1">Контакти&nbsp;•&nbsp;Залишити заявку&nbsp;•&nbsp;&nbsp;&nbsp;</div>
+      <div class="mq-item" data-i18n="cq1">Контакти&nbsp;•&nbsp;Залишити заявку&nbsp;•&nbsp;&nbsp;&nbsp;</div>
+    </div>
+  </div>
+  <div class="cta-center">
+    <p data-i18n="cq.sub">Як ми можемо вам допомогти?</p>
+    <div class="link"><a href="#contact" data-i18n="cq.btn">ЗВ'ЯЗАТИСЬ З НАМИ</a></div>
+  </div>
+</section>
+
+<!-- ══ CONTACT FORM ══ -->
+<section class="contact-section" id="contact">
+  <div class="mod_container">
+    <div class="contact-grid">
+      <div>
+        <div class="contact-overline" data-i18n="ct.ov">Контакти</div>
+        <!-- [ЗАМІНИТИ] Заголовок та опис -->
+        <h2 class="contact-h2" data-i18n="ct.h2">Залишити заявку</h2>
+        <p class="contact-sub" data-i18n="ct.sub">Заповніть форму і наш менеджер зв'яжеться з вами протягом одного робочого дня.</p>
+        <div class="contact-items">
+          <!-- [ЗАМІНИТИ] Реальні контактні дані -->
+          <div class="contact-item">
+            <div class="ci-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 013.6 1h3a2 2 0 012 1.72c.127.96.361 1.9.7 2.81a2 2 0 01-.45 2.11L7.91 8.6a16 16 0 006.29 6.29l.96-.96a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+            <div><div class="ci-lb" data-i18n="ci.ph">Телефон</div><div class="ci-val">+38 (044) 000-00-00</div></div>
+          </div>
+          <div class="contact-item">
+            <div class="ci-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+            <div><div class="ci-lb">Email</div><div class="ci-val">info@medua.ua</div></div>
+          </div>
+          <div class="contact-item">
+            <div class="ci-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+            <div><div class="ci-lb" data-i18n="ci.ad">Адреса</div><div class="ci-val" data-i18n="ci.cy">м. Київ, вул. _________, __</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form">
+        <!-- [ЗАМІНИТИ] Замініть YOUR_FORM_ID на реальний ID з formspree.io -->
+        <form id="contactForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" onsubmit="handleSubmit(event)">
+        <div class="fr2">
+          <div class="fr"><label data-i18n="f.nm">Ім'я</label><input type="text" name="name" placeholder="Іван Петренко"></div>
+          <div class="fr"><label data-i18n="f.or">Організація</label><input type="text" name="org" placeholder="Клініка"></div>
+        </div>
+        <div class="fr2">
+          <div class="fr"><label data-i18n="f.ph">Телефон</label><input type="tel" name="phone" placeholder="+38 (0__)___-__-__"></div>
+          <div class="fr"><label>Email</label><input type="email" name="email" placeholder="you@clinic.ua"></div>
+        </div>
+        <div class="fr">
+          <label data-i18n="f.ca">Категорія</label>
+          <select name="category">
+            <option data-i18n="f.ch">Оберіть категорію</option>
+            <option data-i18n="f.o1">Рентгенологія</option>
+            <option data-i18n="f.o2">УЗД</option>
+            <option data-i18n="f.o3">Стоматологія</option>
+            <option data-i18n="f.o4">Операційне</option>
+            <option data-i18n="f.o5">Лабораторне</option>
+            <option data-i18n="f.o6">Інше</option>
+          </select>
+        </div>
+        <div class="fr"><label data-i18n="f.ms">Повідомлення</label><textarea name="message" placeholder="Опишіть ваш запит, кількість одиниць, терміни..."></textarea></div>
+        <button class="btn-send" id="submitBtn" type="submit" data-i18n="f.sd">Надіслати заявку</button>
+        <div id="formSuccess" style="display:none;margin-top:20px;padding:16px;background:rgba(52,189,194,.1);border:1px solid rgba(52,189,194,.3);border-radius:2px;text-align:center">
+          <div style="font-size:1.1rem;color:var(--teal)">✓</div>
+          <div style="font-size:.88rem;font-weight:600;color:var(--text);margin-top:6px" data-i18n="f.ok">Заявку надіслано! Ми зв'яжемось з вами найближчим часом.</div>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="mod_container" style="padding:0 52px">
+    <div class="grid_footer">
+      <div class="item_footer">
+        <!-- [ЗАМІНИТИ] Назва, слоган, рік -->
+        <span class="ft-name">Med<em>UA</em></span>
+        <p class="ft-tagline" data-i18n="ft.tagline">Надійне медичне обладнання для сучасної України.</p>
+        <div class="ft-copy" data-i18n="ft.c">© 2026 МедUA. Усі права захищено.</div>
+      </div>
+      <div class="item_footer">
+        <h4 data-i18n="ft.menu">Меню</h4>
+        <ul>
+          <li><a href="#products" data-i18n="n.eq">Обладнання</a></li>
+          <li><a href="#services" data-i18n="n.sv">Послуги</a></li>
+          <li><a href="#about"    data-i18n="n.ab">Про нас</a></li>
+          <li><a href="#contact"  data-i18n="n.ct">Контакти</a></li>
+        </ul>
+      </div>
+      <div class="item_footer">
+        <!-- [ЗАМІНИТИ] Реальні контактні дані -->
+        <h4 data-i18n="ft.ct">Контакти</h4>
+        <ul>
+          <li><a href="#">м. Київ, вул. _________, __</a></li>
+          <li><a href="tel:+380440000000">+38 (044) 000-00-00</a></li>
+          <li><a href="mailto:info@medua.ua">info@medua.ua</a></li>
+        </ul>
+      </div>
+      <div class="item_footer">
+        <h4 data-i18n="ft.dev">Розробка</h4>
+        <ul><li><a href="https://romanow.com.ua" target="_blank">Romanow Web Studio</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span data-i18n="ft.c">© 2026 МедUA. Усі права захищено.</span>
+      <a href="https://romanow.com.ua" target="_blank">Romanow Web Studio</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// ── CURSOR ──────────────────────────────
+const dot  = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+const curEl = document.getElementById('cursor');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  dot.style.left=mx+'px'; dot.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,.card-3d,.kpi-box').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('cursor-grow'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('cursor-grow'));
+});
+
+// ── THREE.JS HERO ────────────────────────
+(function initHero(){
+  const canvas = document.getElementById('hero-canvas');
+  const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(canvas.offsetWidth,canvas.offsetHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, canvas.offsetWidth/canvas.offsetHeight, 0.1, 1000);
+  camera.position.z = 5;
+
+  // Particle field
+  const count = 2800;
+  const positions = new Float32Array(count*3);
+  const colors    = new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    positions[i*3]   = (Math.random()-0.5)*22;
+    positions[i*3+1] = (Math.random()-0.5)*14;
+    positions[i*3+2] = (Math.random()-0.5)*10;
+    const mix = Math.random();
+    colors[i*3]   = mix>0.7 ? 0.2 : 0.04+mix*0.1;
+    colors[i*3+1] = mix>0.7 ? 0.74: 0.08+mix*0.3;
+    colors[i*3+2] = mix>0.7 ? 0.76: 0.1+mix*0.2;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geo.setAttribute('color',   new THREE.BufferAttribute(colors,3));
+  const mat = new THREE.PointsMaterial({size:.055,vertexColors:true,transparent:true,opacity:.85,sizeAttenuation:true});
+  const particles = new THREE.Points(geo,mat);
+  scene.add(particles);
+
+  // Floating wireframe torus — medical ring feel
+  const torusGeo = new THREE.TorusGeometry(2.2, 0.006, 4, 80);
+  const torusMat = new THREE.MeshBasicMaterial({color:0x34BDC2,transparent:true,opacity:.12,wireframe:false});
+  const torus = new THREE.Mesh(torusGeo,torusMat);
+  torus.rotation.x = Math.PI/4;
+  scene.add(torus);
+
+  const torus2Geo = new THREE.TorusGeometry(3.2, 0.004, 4, 100);
+  const torus2Mat = new THREE.MeshBasicMaterial({color:0x34BDC2,transparent:true,opacity:.06});
+  const torus2 = new THREE.Mesh(torus2Geo,torus2Mat);
+  torus2.rotation.x = -Math.PI/6;
+  torus2.rotation.y = Math.PI/5;
+  scene.add(torus2);
+
+  // Mouse tracking
+  let targetX=0,targetY=0;
+  document.addEventListener('mousemove',e=>{
+    targetX = (e.clientX/window.innerWidth  - 0.5) * 1.6;
+    targetY = (e.clientY/window.innerHeight - 0.5) * 1.0;
+  });
+
+  let t=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    t+=0.004;
+    particles.rotation.y += (targetX*0.15 - particles.rotation.y)*0.04;
+    particles.rotation.x += (-targetY*0.1  - particles.rotation.x)*0.04;
+    torus.rotation.z  = t*0.25;
+    torus.rotation.y += 0.003;
+    torus2.rotation.z = -t*0.18;
+    torus2.rotation.x += 0.002;
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    const w=canvas.offsetWidth,h=canvas.offsetHeight;
+    renderer.setSize(w,h);
+    camera.aspect=w/h;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+// ── THREE.JS COUNTER PARTICLES ──────────
+(function initCounter(){
+  const canvas = document.getElementById('counter-canvas');
+  const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+  renderer.setSize(canvas.offsetWidth,canvas.offsetHeight);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75,canvas.offsetWidth/canvas.offsetHeight,0.1,100);
+  camera.position.z=3;
+
+  const count=1200;
+  const pos=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const r=1.5+Math.random()*2.5;
+    const theta=Math.random()*Math.PI*2;
+    const phi=Math.acos(2*Math.random()-1);
+    pos[i*3]  =r*Math.sin(phi)*Math.cos(theta);
+    pos[i*3+1]=r*Math.sin(phi)*Math.sin(theta);
+    pos[i*3+2]=r*Math.cos(phi);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const m=new THREE.PointsMaterial({color:0x34BDC2,size:.04,transparent:true,opacity:.6});
+  scene.add(new THREE.Points(g,m));
+
+  // Cross / plus shapes floating
+  function makeCross(scale,x,y,z,op){
+    const g=new THREE.BufferGeometry();
+    const v=new Float32Array([-scale,0,0, scale,0,0, 0,-scale,0, 0,scale,0]);
+    g.setAttribute('position',new THREE.BufferAttribute(v,3));
+    const m=new THREE.LineBasicMaterial({color:0x34BDC2,transparent:true,opacity:op});
+    const l=new THREE.LineSegments(g,m);
+    l.position.set(x,y,z);
+    return l;
+  }
+  const crosses=[];
+  for(let i=0;i<8;i++){
+    const c=makeCross(0.15+Math.random()*0.2,(Math.random()-0.5)*6,(Math.random()-0.5)*4,(Math.random()-0.5)*3,0.15+Math.random()*0.2);
+    scene.add(c); crosses.push(c);
+  }
+
+  let ct=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    ct+=0.005;
+    scene.rotation.y=ct*0.3;
+    scene.rotation.x=Math.sin(ct*0.4)*0.15;
+    crosses.forEach((c,i)=>{c.rotation.z=ct*(0.5+i*0.1);});
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    const w=canvas.offsetWidth,h=canvas.offsetHeight;
+    renderer.setSize(w,h);
+    camera.aspect=w/h;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+// ── 3D CARD TILT ────────────────────────
+document.querySelectorAll('[data-tilt]').forEach(card=>{
+  const bg   = card.querySelector('.card-bg-layer');
+  const img  = card.querySelector('.card-img-layer');
+  const cont = card.querySelector('.card-content-layer');
+  let rafId;
+
+  card.addEventListener('mousemove',e=>{
+    cancelAnimationFrame(rafId);
+    rafId=requestAnimationFrame(()=>{
+      const r=card.getBoundingClientRect();
+      const x=((e.clientX-r.left)/r.width -0.5)*2;
+      const y=((e.clientY-r.top) /r.height-0.5)*2;
+      const rotY= x*14;
+      const rotX=-y*10;
+      const shine=`radial-gradient(circle at ${(x+1)*50}% ${(y+1)*50}%,rgba(52,189,194,.12) 0%,transparent 65%)`;
+      card.style.transform=`perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02,1.02,1.02)`;
+      card.style.transition='transform .05s linear';
+      if(bg) bg.style.transform=`translateZ(-15px) scale(1.05)`;
+      if(img) img.style.transform=`translateZ(30px) translate(${x*8}px,${y*5}px)`;
+      if(cont) cont.style.transform=`translateZ(40px) translate(${x*4}px,${y*3}px)`;
+      card.style.background=shine;
+    });
+  });
+
+  card.addEventListener('mouseleave',()=>{
+    cancelAnimationFrame(rafId);
+    card.style.transform='perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)';
+    card.style.transition='transform .6s cubic-bezier(.23,1,.32,1)';
+    card.style.background='';
+    if(bg) bg.style.transform='';
+    if(img) img.style.transform='translateZ(20px)';
+    if(cont) cont.style.transform='translateZ(30px)';
+  });
+});
+
+// ── SPLASH ──────────────────────────────
+const stl=gsap.timeline({onComplete:()=>{
+  gsap.to('#splash',{opacity:0,duration:.6,delay:.2,onComplete:()=>{
+    document.getElementById('splash').style.display='none';
+  }});
+}});
+['#sl1','#sl2','#sl3'].forEach((id,i)=>{
+  stl.set(id,{height:'auto'},i*.38)
+     .to(id+' h2',{y:'0%',duration:.65,ease:'power3.out'},i*.38)
+     .to(id+' h2',{y:'-110%',duration:.5,ease:'power2.in'},i*.38+.95);
+});
+stl.call(()=>{
+  gsap.to(['#hpill','#hh1','#hsub','#hbtns','#hstats','#hcirc'],{opacity:1,y:0,duration:.9,stagger:.13,ease:'power3.out'});
+},[],'-=.1');
+gsap.set(['#hpill','#hh1','#hsub','#hbtns','#hstats','#hcirc'],{opacity:0,y:30});
+
+// ── SCROLL RESTORE FIX ───────────────────
+if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+window.scrollTo(0, 0);
+
+// ── NAV ─────────────────────────────────
+window.addEventListener('scroll',()=>document.getElementById('header').classList.toggle('scrolled',scrollY>60));
+
+// ── SVG PATHS ────────────────────────────
+gsap.utils.toArray('.reveal-path').forEach(p=>{
+  const l=p.getTotalLength?p.getTotalLength():300;
+  gsap.set(p,{strokeDasharray:l,strokeDashoffset:l});
+  gsap.to(p,{strokeDashoffset:0,duration:1.2,ease:'power2.out',scrollTrigger:{trigger:p,start:'top 85%'}});
+});
+
+// ── COUNTER ──────────────────────────────
+ScrollTrigger.create({trigger:'#cnum',start:'top 70%',once:true,onEnter:()=>{
+  let o={v:0};
+  gsap.to(o,{v:500,duration:2.2,ease:'power2.out',onUpdate:()=>{
+    document.getElementById('cnum').textContent=Math.round(o.v)+'+';
+  }});
+}});
+
+// ── SCROLL REVEALS ────────────────────────
+gsap.utils.toArray('.paragrafo_anim').forEach(el=>{
+  gsap.from(el,{scrollTrigger:{trigger:el,start:'top 84%'},opacity:0,y:36,duration:.8,ease:'power3.out'});
+});
+gsap.utils.toArray('.card-3d-wrap').forEach((el,i)=>{
+  gsap.from(el,{scrollTrigger:{trigger:el,start:'top 87%'},opacity:0,y:50,rotateX:8,duration:.85,delay:i*.1,ease:'power3.out'});
+});
+gsap.utils.toArray('.kpi-box').forEach((el,i)=>{
+  gsap.from(el,{scrollTrigger:{trigger:el,start:'top 87%'},opacity:0,y:24,duration:.65,delay:i*.09,ease:'power3.out'});
+});
+
+// ── HEADING MASK ON SCROLL ────────────────
+gsap.utils.toArray('.heading_mask').forEach(mask=>{
+  const dark=mask.querySelector('.mask-dark');
+  if(!dark)return;
+  ScrollTrigger.create({
+    trigger:mask,start:'top 63%',end:'bottom 37%',
+    onEnter:()     =>gsap.to(dark,{clipPath:'inset(0 0% 0 0)',  duration:.9,ease:'power3.inOut'}),
+    onLeaveBack:() =>gsap.to(dark,{clipPath:'inset(0 100% 0 0)', duration:.7,ease:'power3.inOut'}),
+  });
+});
+
+// ── i18n ─────────────────────────────────
+const T={
+  uk:{
+    'n.eq':'Обладнання','n.sv':'Послуги','n.ab':'Про нас','n.ct':'Контакти','n.cta':'Замовити',
+    'h.pill':'Медичне обладнання',
+    'h.h1':'Медичне обладнання<br>для сучасної <em>України</em>',
+    'h.sub':'Продаж, імпорт та сервісне обслуговування для лікарень, клінік та стоматологій по всій країні',
+    'h.b1':'Переглянути каталог','h.b2':'Зв\'язатись','h.disc':'КАТАЛОГ',
+    'hs.c':'Клієнтів','hs.y':'Років досвіду','hs.s':'Підтримка',
+    'intro.p1':'Ми постачаємо надійне медичне обладнання<br>для ефективної діагностики та лікування.',
+    'mq1':'Інновації в медицині',
+    'intro.p2':'МедUA постачає <strong>передові медичні системи</strong> для державних лікарень, приватних клінік та стоматологічних центрів по всій Україні.',
+    'cnt.lbl':'Медичних закладів обслуговується',
+    'pr.ov':'Каталог обладнання','pr.title':'Медичне обладнання','pr.sub':'Широкий асортимент для різних клінічних потреб — <strong>від діагностики до хірургії.</strong>',
+    'p1.cat':'Рентгенологія','p2.cat':'УЗД Діагностика','p3.cat':'Стоматологія','p4.cat':'Операційне та лабораторне',
+    'p1.t':'Рентгенологічне обладнання','p2.t':'Ультразвукова діагностика','p3.t':'Стоматологічне обладнання','p4.t':'Операційне та лабораторне',
+    'p1.d':'Цифрові рентген-апарати, флюорографи, мамографи від провідних виробників. Сертифікація МОЗ України.',
+    'p2.d':'Стаціонарні та портативні апарати для кардіології, акушерства та загальної практики.',
+    'p3.d':'Установки, КЛКТ-томографи, автоклави та витратні матеріали для клінік будь-якого рівня.',
+    'p4.d':'Столи та лампи, наркозні апарати, електрохірургія, ендоскопія та лабораторне обладнання.',
+    'p.lnk':'Запросити прайс',
+    'sv.ov':'Наші послуги','sv.title':'Комплексні рішення під ключ',
+    'hm1.t':'ПРОДАЖ<br>ОБЛАДНАННЯ','hm1.d':'Широкий асортимент від провідних виробників. Офіційна гарантія та документація МОЗ. Прямі контракти.',
+    'hm2.t':'ІМПОРТ<br>ТА СЕРВІС','hm2.d':'Прямі поставки з Європи, США та Азії. Митне оформлення під ключ. Атестовані інженери, виїзд за 48 годин.',
+    'hm3.t':'ГНУЧКІ<br>УМОВИ','hm3.d':'Лізинг, відтермінування платежу, держзакупівлі ProZorro. Індивідуальний підхід до кожного клієнта.',
+    'pt.lbl':'Нам довіряють',
+    'kpi.ov':'Чому обирають нас','kpi.title':'Надійний партнер,<br><span style="color:var(--teal)">крок за кроком.</span>',
+    'k1':'Медичних закладів-партнерів','k2':'Років на ринку','k3':'Час реакції сервісу','k4':'Брендів у портфоліо',
+    'cq1':'Контакти\u00a0•\u00a0Залишити заявку\u00a0•','cq.sub':'Як ми можемо вам допомогти?','cq.btn':'ЗВ\'ЯЗАТИСЬ З НАМИ',
+    'ct.ov':'Контакти','ct.h2':'Залишити заявку','ct.sub':'Заповніть форму і наш менеджер зв\'яжеться з вами протягом одного робочого дня.',
+    'ci.ph':'Телефон','ci.ad':'Адреса','ci.cy':'м. Київ, вул. _________, __',
+    'f.nm':'Ім\'я','f.or':'Організація','f.ph':'Телефон','f.ca':'Категорія',
+    'f.ch':'Оберіть категорію','f.o1':'Рентгенологія','f.o2':'УЗД','f.o3':'Стоматологія','f.o4':'Операційне','f.o5':'Лабораторне','f.o6':'Інше',
+    'f.ms':'Повідомлення','f.sd':'Надіслати заявку',
+    'w1.t':"Офіційні дистриб\'ютори",'w1.d':'Прямі контракти з виробниками. Оригінальне обладнання, повна документація МОЗ та офіційна гарантія.',
+    'w2.t':'Атестовані інженери','w2.d':'Власна сервісна служба. Виїзд по всій Україні протягом 48 годин.',
+    'w3.t':'Гнучкі умови оплати','w3.d':'Лізинг, відтермінування, держзакупівлі ProZorro. Індивідуальний підхід.',
+    'w4.t':'Повний цикл','w4.d':'Від підбору та поставки до монтажу, навчання і постгарантійного сервісу.',
+    'ft.tagline':'Надійне медичне обладнання для сучасної України.','ft.c':'© 2026 МедUA. Усі права захищено.','ft.menu':'Меню','ft.ct':'Контакти','ft.dev':'Розробка'
+  },
+  ru:{
+    'n.eq':'Оборудование','n.sv':'Услуги','n.ab':'О нас','n.ct':'Контакты','n.cta':'Заказать',
+    'h.pill':'Медицинское оборудование',
+    'h.h1':'Медицинское оборудование<br>для современной <em>Украины</em>',
+    'h.sub':'Продажа, импорт и сервисное обслуживание для больниц, клиник и стоматологий по всей стране',
+    'h.b1':'Смотреть каталог','h.b2':'Связаться','h.disc':'КАТАЛОГ',
+    'hs.c':'Клиентов','hs.y':'Лет опыта','hs.s':'Поддержка',
+    'intro.p1':'Мы поставляем надёжное медицинское оборудование<br>для эффективной диагностики и лечения.',
+    'mq1':'Инновации в медицине',
+    'intro.p2':'МедUA поставляет <strong>передовые медицинские системы</strong> для государственных больниц, частных клиник и стоматологий по всей Украине.',
+    'cnt.lbl':'Медицинских учреждений обслуживается',
+    'pr.ov':'Каталог оборудования','pr.title':'Медицинское оборудование','pr.sub':'Широкий ассортимент для различных клинических нужд — <strong>от диагностики до хирургии.</strong>',
+    'p1.cat':'Рентгенология','p2.cat':'УЗИ диагностика','p3.cat':'Стоматология','p4.cat':'Операционное и лабораторное',
+    'p1.t':'Рентгенологическое оборудование','p2.t':'Ультразвуковая диагностика','p3.t':'Стоматологическое оборудование','p4.t':'Операционное и лабораторное',
+    'p1.d':'Цифровые рентген-аппараты, флюорографы, маммографы от ведущих производителей. Сертификация МЗ.',
+    'p2.d':'Стационарные и портативные аппараты для кардиологии, акушерства и общей практики.',
+    'p3.d':'Установки, конусно-лучевые томографы, автоклавы и расходные материалы для клиник любого уровня.',
+    'p4.d':'Столы и лампы, наркозные аппараты, электрохирургия, эндоскопия и лабораторное оборудование.',
+    'p.lnk':'Запросить прайс',
+    'sv.ov':'Наши услуги','sv.title':'Комплексные решения под ключ',
+    'hm1.t':'ПРОДАЖА<br>ОБОРУДОВАНИЯ','hm1.d':'Широкий ассортимент от ведущих производителей. Официальная гарантия и документация МЗ.',
+    'hm2.t':'ИМПОРТ<br>И СЕРВИС','hm2.d':'Прямые поставки из Европы, США и Азии. Таможня под ключ. Аттестованные инженеры, выезд за 48 часов.',
+    'hm3.t':'ГИБКИЕ<br>УСЛОВИЯ','hm3.d':'Лизинг, рассрочка, госзакупки ProZorro. Индивидуальный подход к каждому клиенту.',
+    'pt.lbl':'Нам доверяют',
+    'kpi.ov':'Почему выбирают нас','kpi.title':'Надёжный партнёр,<br><span style="color:var(--teal)">шаг за шагом.</span>',
+    'k1':'Медицинских учреждений','k2':'Лет на рынке','k3':'Время реакции сервиса','k4':'Брендов в портфолио',
+    'cq1':'Контакты\u00a0•\u00a0Оставить заявку\u00a0•','cq.sub':'Как мы можем вам помочь?','cq.btn':'СВЯЗАТЬСЯ С НАМИ',
+    'ct.ov':'Контакты','ct.h2':'Оставить заявку','ct.sub':'Заполните форму и наш менеджер свяжется с вами в течение одного рабочего дня.',
+    'ci.ph':'Телефон','ci.ad':'Адрес','ci.cy':'г. Киев, ул. _________, __',
+    'f.nm':'Имя','f.or':'Организация','f.ph':'Телефон','f.ca':'Категория',
+    'f.ch':'Выберите категорию','f.o1':'Рентгенология','f.o2':'УЗИ','f.o3':'Стоматология','f.o4':'Операционное','f.o5':'Лабораторное','f.o6':'Другое',
+    'f.ms':'Сообщение','f.sd':'Отправить заявку',
+    'w1.t':'Официальные дистрибьюторы','w1.d':'Прямые контракты с производителями. Оригинальное оборудование, полная документация МЗ.',
+    'w2.t':'Аттестованные инженеры','w2.d':'Собственная сервисная служба. Выезд по всей Украине за 48 часов.',
+    'w3.t':'Гибкие условия оплаты','w3.d':'Лизинг, рассрочка, госзакупки ProZorro. Индивидуальный подход.',
+    'w4.t':'Полный цикл','w4.d':'От подбора и поставки до монтажа, обучения и постгарантийного сервиса.',
+    'ft.tagline':'Надёжное медицинское оборудование для современной Украины.','ft.c':'© 2026 МедUA. Все права защищены.','ft.menu':'Меню','ft.ct':'Контакты','ft.dev':'Разработка'
+  },
+  en:{
+    'n.eq':'Equipment','n.sv':'Services','n.ab':'About','n.ct':'Contact','n.cta':'Inquire',
+    'h.pill':'Medical Equipment',
+    'h.h1':'Medical equipment<br>for modern <em>Ukraine</em>',
+    'h.sub':'Sales, import and service of medical equipment for hospitals, clinics and dental centers across the country',
+    'h.b1':'View catalog','h.b2':'Contact us','h.disc':'CATALOG',
+    'hs.c':'Clients','hs.y':'Years of experience','hs.s':'Support',
+    'intro.p1':'We supply reliable medical equipment<br>for effective diagnostics and treatment.',
+    'mq1':'Innovation in medicine',
+    'intro.p2':'MedUA supplies <strong>advanced medical systems</strong> for state hospitals, private clinics and dental centers across Ukraine.',
+    'cnt.lbl':'Medical facilities served',
+    'pr.ov':'Equipment catalog','pr.title':'Medical Equipment','pr.sub':'Wide range for various clinical needs — <strong>from diagnostics to surgery.</strong>',
+    'p1.cat':'Radiology','p2.cat':'Ultrasound','p3.cat':'Dental','p4.cat':'Surgical & Laboratory',
+    'p1.t':'X-Ray Equipment','p2.t':'Ultrasound Diagnostics','p3.t':'Dental Equipment','p4.t':'Surgical & Laboratory',
+    'p1.d':'Digital X-ray machines, fluorographs, mammographs from leading manufacturers. Full MoH certification.',
+    'p2.d':'Stationary and portable systems for cardiology, obstetrics and general practice.',
+    'p3.d':'Dental units, cone-beam CT, autoclaves and consumables for clinics of any scale.',
+    'p4.d':'Operating tables and lights, anesthesia machines, electrosurgery, endoscopy and laboratory equipment.',
+    'p.lnk':'Request pricing',
+    'sv.ov':'Our services','sv.title':'Comprehensive turnkey solutions',
+    'hm1.t':'EQUIPMENT<br>SALES','hm1.d':'Wide range from leading manufacturers. Official warranty and full MoH documentation.',
+    'hm2.t':'IMPORT<br>& SERVICE','hm2.d':'Direct deliveries from Europe, USA and Asia. Customs clearance turnkey. On-site visits within 48h.',
+    'hm3.t':'FLEXIBLE<br>TERMS','hm3.d':'Leasing, deferred payment, government procurement (ProZorro). Individual approach for every client.',
+    'pt.lbl':'Trusted by',
+    'kpi.ov':'Why choose us','kpi.title':'A trusted partner,<br><span style="color:var(--teal)">step by step.</span>',
+    'k1':'Medical partner facilities','k2':'Years on the market','k3':'Service response time','k4':'Equipment brands',
+    'cq1':'Contact\u00a0•\u00a0Request Information\u00a0•','cq.sub':'How can we help you?','cq.btn':'CONTACT US',
+    'ct.ov':'Contact','ct.h2':'Send an inquiry','ct.sub':'Fill in the form and our manager will contact you within one business day.',
+    'ci.ph':'Phone','ci.ad':'Address','ci.cy':'Kyiv, Ukraine, ____________',
+    'f.nm':'Name','f.or':'Organization','f.ph':'Phone','f.ca':'Category',
+    'f.ch':'Select category','f.o1':'Radiology','f.o2':'Ultrasound','f.o3':'Dental','f.o4':'Surgical','f.o5':'Laboratory','f.o6':'Other',
+    'f.ms':'Message','f.sd':'Send inquiry',
+    'w1.t':'Authorized distributors','w1.d':'Direct manufacturer contracts. Original equipment with full MoH documentation and official warranty.',
+    'w2.t':'Certified engineers','w2.d':'In-house service team. On-site visits across Ukraine within 48 hours.',
+    'w3.t':'Flexible payment terms','w3.d':'Leasing, deferred payment, government procurement (ProZorro).',
+    'w4.t':'Full cycle','w4.d':'From selection and supply to installation, staff training and post-warranty service.',
+    'ft.tagline':'Reliable medical equipment for modern Ukraine.','ft.c':'© 2026 MedUA. All rights reserved.','ft.menu':'Menu','ft.ct':'Contact','ft.dev':'Development'
+  }
+};
+function setLang(l){
+  document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===l));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(T[l]&&T[l][k])el.innerHTML=T[l][k];
+  });
+}
+
+// ── FORM SUBMIT ──────────────────────────
+async function handleSubmit(e) {
+  e.preventDefault();
+  const btn  = document.getElementById('submitBtn');
+  const form = document.getElementById('contactForm');
+  const ok   = document.getElementById('formSuccess');
+  const orig = btn.textContent;
+
+  btn.textContent = '...';
+  btn.disabled = true;
+  btn.style.opacity = '.6';
+
+  try {
+    const res = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    });
+    if (res.ok) {
+      form.reset();
+      ok.style.display = 'block';
+      btn.style.display = 'none';
+    } else {
+      btn.textContent = '⚠ Помилка — спробуйте ще раз';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  } catch {
+    btn.textContent = '⚠ Немає з'єднання';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    setTimeout(() => { btn.textContent = orig; }, 3000);
+  }
+}
+</script>
+</body>
+</html>
